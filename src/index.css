@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #FAFAF7;
+    color: #1A1A1A;
+    min-height: 100dvh;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  ::selection {
+    background: #C4A882;
+    color: #fff;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#2C2420] text-[#FAFAF7] font-sans font-medium text-sm rounded-none tracking-wide transition-all duration-200 hover:-translate-y-[1px] active:scale-[0.98] whitespace-nowrap;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 border border-[#2C2420]/20 text-[#2C2420] font-sans font-medium text-sm rounded-none tracking-wide transition-all duration-200 hover:bg-[#2C2420]/5 active:scale-[0.98] whitespace-nowrap;
+  }
+
+  .input-field {
+    @apply w-full px-3 py-2.5 border border-[#E8DDD4] bg-white text-sm font-sans text-[#2C2420] placeholder:text-[#9C8C7C] focus:outline-none focus:border-[#C4A882] transition-colors duration-150;
+  }
+
+  .label {
+    @apply block text-xs font-sans font-medium text-[#9C8C7C] tracking-widest uppercase mb-1.5;
+  }
+}
