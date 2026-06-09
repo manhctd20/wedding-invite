@@ -2,14 +2,20 @@ import { useRef } from 'react'
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { InvitationData, THEMES } from '../types/invitation'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { toLunarDate } from '../utils/lunar'
+import CalendarWidget from '../components/sections/CalendarWidget'
+import FamilySection from '../components/sections/FamilySection'
+import CoupleProfileSection from '../components/sections/CoupleProfileSection'
+import BankSection from '../components/sections/BankSection'
 import CountdownSection from '../components/sections/CountdownSection'
 import OurStorySection from '../components/sections/OurStorySection'
 import WeddingPartySection from '../components/sections/WeddingPartySection'
 import ScheduleSection from '../components/sections/ScheduleSection'
 import EffectOverlay from '../components/effects/EffectOverlay'
 import GuestbookSection from '../components/sections/GuestbookSection'
+import RsvpSection from '../components/sections/RsvpSection'
 
-interface Props { data: InvitationData }
+interface Props { data: InvitationData; guestName?: string }
 
 function fmt(d: string) {
   const dt = new Date(d)
@@ -68,10 +74,11 @@ function GoldLine({ delay = 0 }: { delay?: number }) {
   )
 }
 
-export default function VelvetTemplate({ data }: Props) {
+export default function VelvetTemplate({ data, guestName }: Props) {
   const m = useIsMobile()
   const theme = THEMES.velvet
   const date = fmt(data.weddingDate)
+  const lunar = toLunarDate(data.weddingDate)
   const cover = data.coverImage || `https://picsum.photos/seed/wedding-velvet-${data.id}/900/1100`
   const heroRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
@@ -137,7 +144,7 @@ export default function VelvetTemplate({ data }: Props) {
             transition={{ duration: 1.2, delay: 0.1 }}
             style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase', color: theme.accent, marginBottom: m ? 24 : 36 }}
           >
-            Trân trọng kính mời
+            {guestName ? `Kính mời ${guestName}` : 'Trân trọng kính mời'}
           </motion.p>
 
           {/* Bride name - kinetic */}
@@ -194,6 +201,9 @@ export default function VelvetTemplate({ data }: Props) {
             </p>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: m ? 12 : 13, color: 'rgba(240,232,220,0.5)' }}>
               {data.weddingTime} &bull; {data.venueName}
+            </p>
+            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: m ? 12 : 13, color: theme.accent, opacity: 0.85 }}>
+              {lunar.display}
             </p>
           </motion.div>
         </motion.div>
@@ -267,11 +277,24 @@ export default function VelvetTemplate({ data }: Props) {
                 {data.venueName}
               </motion.h3>
               <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: theme.muted, lineHeight: 1.75 }}>{data.venueAddress}</p>
+              {data.venueMapUrl && (
+                <a href={data.venueMapUrl} target="_blank" rel="noopener noreferrer" style={{ display:'inline-block', marginTop:16, fontFamily:"'DM Sans', sans-serif", fontSize:12, letterSpacing:'0.1em', textTransform:'uppercase', color: theme.accent, borderBottom:`1px solid ${theme.accent}`, textDecoration:'none', paddingBottom:2 }}>
+                  Xem bản đồ
+                </a>
+              )}
             </div>
           </div>
 
           <GoldLine delay={0.3} />
         </div>
+      </motion.section>
+
+      {/* ── CALENDAR ── */}
+      <motion.section
+        initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true, amount:0.4 }} transition={{ duration:0.7 }}
+        style={{ padding:`${m ? '48px' : '72px'} ${px} 0` }}
+      >
+        <CalendarWidget weddingDate={data.weddingDate} theme={theme} />
       </motion.section>
 
       {/* ── MESSAGE ── */}
@@ -303,6 +326,16 @@ export default function VelvetTemplate({ data }: Props) {
             />
           </div>
         </motion.section>
+      )}
+
+      {/* ── COUPLE PROFILE ── */}
+      {data.showCoupleProfile && (
+        <CoupleProfileSection data={data} theme={theme} />
+      )}
+
+      {/* ── FAMILY ── */}
+      {data.showFamily && (
+        <FamilySection data={data} theme={theme} />
       )}
 
       {/* ── OUR STORY ── */}
@@ -358,36 +391,11 @@ export default function VelvetTemplate({ data }: Props) {
       )}
 
       {/* ── RSVP ── */}
-      {data.showRsvp && (
-        <motion.section
-          initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.4 }}
-          transition={{ duration: 0.8 }}
-          style={{ padding: `${py} ${px}`, textAlign: 'center', background: theme.bg, position: 'relative', overflow: 'hidden' }}
-        >
-          {/* BG decorative */}
-          <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, rgba(201,146,74,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
+      {data.showRsvp && <RsvpSection slug={data.id} rsvpName={data.rsvpName} rsvpPhone={data.rsvpPhone} rsvpDeadline={data.rsvpDeadline} theme={theme} />}
 
-          <div style={{ maxWidth: 480, margin: '0 auto', position: 'relative' }}>
-            <GoldStar size={24} color={theme.accent} />
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase', color: theme.muted, margin: '20px 0 12px' }}>
-              Xác nhận tham dự
-            </p>
-            <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 400, fontSize: m ? 28 : 36, color: theme.text, marginBottom: 8, lineHeight: 1.1 }}>
-              Vui lòng xác nhận<br />
-              <span style={{ fontStyle: 'italic', color: theme.accent }}>trước ngày trọng đại</span>
-            </h3>
-            {data.rsvpDeadline && (
-              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontSize: m ? 16 : 18, color: 'rgba(240,232,220,0.5)', marginBottom: 32 }}>
-                {new Date(data.rsvpDeadline).toLocaleDateString('vi-VN')}
-              </p>
-            )}
-            <GoldLine />
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: theme.text, marginBottom: 8 }}>{data.rsvpName}</p>
-            <a href={`tel:${data.rsvpPhone}`} style={{ fontFamily: "'DM Mono', monospace", fontSize: m ? 22 : 20, color: theme.accent, letterSpacing: '0.08em', display: 'block' }}>
-              {data.rsvpPhone}
-            </a>
-          </div>
-        </motion.section>
+      {/* ── BANK ── */}
+      {data.showBank && data.bankAccounts && (
+        <BankSection accounts={data.bankAccounts} theme={theme} />
       )}
 
       {/* ── GUESTBOOK ── */}

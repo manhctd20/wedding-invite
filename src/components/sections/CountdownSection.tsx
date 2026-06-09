@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { TemplateTheme } from '../../types/invitation'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import { toLunarDate } from '../../utils/lunar'
 
 interface Props {
   weddingDate: string
@@ -61,6 +62,7 @@ function Digit({ value, label, theme }: { value: number; label: string; theme: T
 export default function CountdownSection({ weddingDate, weddingTime, theme }: Props) {
   const m = useIsMobile()
   const [time, setTime] = useState(() => calcTimeLeft(weddingDate, weddingTime))
+  const lunar = toLunarDate(weddingDate)
 
   useEffect(() => {
     const t = setInterval(() => setTime(calcTimeLeft(weddingDate, weddingTime)), 1000)
@@ -87,9 +89,19 @@ export default function CountdownSection({ weddingDate, weddingTime, theme }: Pr
         letterSpacing: '0.3em',
         textTransform: 'uppercase',
         color: theme.muted,
-        marginBottom: m ? 28 : 40,
+        marginBottom: 8,
       }}>
         {time.passed ? 'Đã tổ chức' : 'Đếm ngược đến ngày cưới'}
+      </p>
+      <p style={{
+        fontFamily: "'Cormorant Garamond', serif",
+        fontStyle: 'italic',
+        fontSize: m ? 12 : 13,
+        color: theme.accent,
+        marginBottom: m ? 24 : 36,
+        opacity: 0.85,
+      }}>
+        {lunar.display}
       </p>
 
       {time.passed ? (

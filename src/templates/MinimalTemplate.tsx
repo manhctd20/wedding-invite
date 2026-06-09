@@ -2,14 +2,20 @@ import { useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { InvitationData, THEMES } from '../types/invitation'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { toLunarDate } from '../utils/lunar'
+import CalendarWidget from '../components/sections/CalendarWidget'
+import FamilySection from '../components/sections/FamilySection'
+import CoupleProfileSection from '../components/sections/CoupleProfileSection'
+import BankSection from '../components/sections/BankSection'
 import CountdownSection from '../components/sections/CountdownSection'
 import OurStorySection from '../components/sections/OurStorySection'
 import WeddingPartySection from '../components/sections/WeddingPartySection'
 import ScheduleSection from '../components/sections/ScheduleSection'
 import EffectOverlay from '../components/effects/EffectOverlay'
 import GuestbookSection from '../components/sections/GuestbookSection'
+import RsvpSection from '../components/sections/RsvpSection'
 
-interface Props { data: InvitationData }
+interface Props { data: InvitationData; guestName?: string }
 
 function fmt(d: string) {
   const dt = new Date(d)
@@ -18,10 +24,11 @@ function fmt(d: string) {
   return { day: String(dt.getDate()).padStart(2,'0'), monthVi: monthsVi[dt.getMonth()], year: String(dt.getFullYear()), iso: `${dt.getFullYear()}.${months[dt.getMonth()]}.${String(dt.getDate()).padStart(2,'0')}`, full: dt.toLocaleDateString('vi-VN') }
 }
 
-export default function MinimalTemplate({ data }: Props) {
+export default function MinimalTemplate({ data, guestName }: Props) {
   const m = useIsMobile()
   const theme = THEMES.minimal
   const date = fmt(data.weddingDate)
+  const lunar = toLunarDate(data.weddingDate)
   const cover = data.coverImage || `https://picsum.photos/seed/wedding-min-${data.id}/900/700`
   const heroRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
@@ -45,7 +52,9 @@ export default function MinimalTemplate({ data }: Props) {
         <div style={{ display:'flex', flexDirection:'column', justifyContent:'space-between', padding: m ? '44px 20px 36px':'80px 64px' }}>
           <div>
             <motion.p initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.7, delay:0.2 }}
-              style={{ fontSize:10, letterSpacing:'0.28em', textTransform:'uppercase', color: theme.muted, marginBottom: m ? 28:44 }}>Trân trọng kính mời</motion.p>
+              style={{ fontSize:10, letterSpacing:'0.28em', textTransform:'uppercase', color: theme.muted, marginBottom: m ? 28:44 }}>
+              {guestName ? `Kính mời ${guestName}` : 'Trân trọng kính mời'}
+            </motion.p>
             <motion.div initial={{ opacity:0, y:18 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.8, delay:0.35 }}>
               <h1 style={{ fontFamily:"'Cormorant Garamond', serif", fontWeight:400, fontSize: m ? 58:'clamp(48px,6vw,84px)', lineHeight:1.0, marginBottom:4 }}>{data.brideFirstName}</h1>
               <h2 style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize: m ? 12:'clamp(12px,1.5vw,16px)', letterSpacing:'0.22em', textTransform:'uppercase', color: theme.muted, marginBottom: m ? 24:40 }}>{data.brideLastName}</h2>
@@ -67,6 +76,7 @@ export default function MinimalTemplate({ data }: Props) {
               <p style={{ fontSize:9, letterSpacing:'0.22em', textTransform:'uppercase', color: theme.muted, marginBottom:6 }}>Ngày</p>
               <p style={{ fontFamily:"'Cormorant Garamond', serif", fontSize: m ? 18:22, color: theme.text }}>{date.day} {date.monthVi}</p>
               <p style={{ fontFamily:"'DM Mono', monospace", fontSize:11, color: theme.muted }}>{date.year}</p>
+              <p style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:11, color: theme.accent, marginTop:6, opacity:0.85 }}>{lunar.display}</p>
             </div>
             <div>
               <p style={{ fontSize:9, letterSpacing:'0.22em', textTransform:'uppercase', color: theme.muted, marginBottom:6 }}>Giờ</p>
@@ -95,6 +105,14 @@ export default function MinimalTemplate({ data }: Props) {
         <CountdownSection weddingDate={data.weddingDate} weddingTime={data.weddingTime} theme={theme} />
       )}
 
+      {/* ── Calendar ── */}
+      <motion.section
+        initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true, amount:0.4 }} transition={{ duration:0.7 }}
+        style={{ padding:`${m ? '48px' : '72px'} ${px}` }}
+      >
+        <CalendarWidget weddingDate={data.weddingDate} theme={theme} />
+      </motion.section>
+
       {/* ── Message ── */}
       {data.message && (
         <motion.section
@@ -104,6 +122,16 @@ export default function MinimalTemplate({ data }: Props) {
           <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color: theme.muted, marginBottom:20 }}>Lời nhắn</p>
           <p style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontWeight:300, fontSize: m ? 18:22, lineHeight:1.85, color:'#3A3A3A', maxWidth:640 }}>"{data.message}"</p>
         </motion.section>
+      )}
+
+      {/* ── Couple Profile ── */}
+      {data.showCoupleProfile && (
+        <CoupleProfileSection data={data} theme={theme} />
+      )}
+
+      {/* ── Family ── */}
+      {data.showFamily && (
+        <FamilySection data={data} theme={theme} />
       )}
 
       {/* ── Our Story ── */}
@@ -120,15 +148,12 @@ export default function MinimalTemplate({ data }: Props) {
           <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color: theme.muted, marginBottom:20 }}>Địa điểm</p>
           <h3 style={{ fontFamily:"'Cormorant Garamond', serif", fontWeight:400, fontSize: m ? 24:28, marginBottom:10 }}>{data.venueName}</h3>
           <p style={{ fontSize:14, color: theme.muted, lineHeight:1.7 }}>{data.venueAddress}</p>
+          {data.venueMapUrl && (
+            <a href={data.venueMapUrl} target="_blank" rel="noopener noreferrer" style={{ display:'inline-block', marginTop:12, fontFamily:"'DM Sans', sans-serif", fontSize:12, letterSpacing:'0.1em', textTransform:'uppercase', color: theme.text, borderBottom:`1px solid ${theme.text}`, textDecoration:'none', paddingBottom:2 }}>
+              Xem bản đồ
+            </a>
+          )}
         </div>
-        {data.showRsvp && (
-          <div style={{ borderTop: m ? `1px solid ${theme.border}`:'none', paddingTop: m ? 28:0 }}>
-            <p style={{ fontSize:10, letterSpacing:'0.25em', textTransform:'uppercase', color: theme.muted, marginBottom:20 }}>Xác nhận tham dự</p>
-            <p style={{ fontSize:14, color: theme.text, marginBottom:4 }}>{data.rsvpName}</p>
-            <a href={`tel:${data.rsvpPhone}`} style={{ fontFamily:"'DM Mono', monospace", fontSize: m ? 20:16, color: theme.text, display:'block', marginBottom:8 }}>{data.rsvpPhone}</a>
-            {data.rsvpDeadline && <p style={{ fontSize:12, color: theme.muted }}>Trước ngày {new Date(data.rsvpDeadline).toLocaleDateString('vi-VN')}</p>}
-          </div>
-        )}
       </motion.section>
 
       {/* ── Schedule ── */}
@@ -157,6 +182,14 @@ export default function MinimalTemplate({ data }: Props) {
           </div>
         </motion.section>
       )}
+
+      {/* ── Bank ── */}
+      {data.showBank && data.bankAccounts && (
+        <BankSection accounts={data.bankAccounts} theme={theme} />
+      )}
+
+      {/* ── RSVP ── */}
+      {data.showRsvp && <RsvpSection slug={data.id} rsvpName={data.rsvpName} rsvpPhone={data.rsvpPhone} rsvpDeadline={data.rsvpDeadline} theme={theme} />}
 
       {/* ── Guestbook ── */}
       {data.showGuestbook && <GuestbookSection slug={data.id} theme={theme} />}

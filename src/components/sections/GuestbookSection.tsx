@@ -258,18 +258,18 @@ export default function GuestbookSection({ slug, theme }: Props) {
             <p style={{ fontSize: 13, color: theme.muted }}>Không thể tải lời chúc.</p>
           ) : entries.length === 0 ? (
             <div style={{
-              padding: '32px 24px', border: `1px dashed ${theme.border}`,
-              textAlign: 'center',
+              padding: '40px 24px', border: `1px dashed ${theme.border}`,
+              textAlign: 'center', borderRadius: 16
             }}>
               <p style={{
                 fontFamily: "'Cormorant Garamond', serif",
-                fontStyle: 'italic', fontSize: 18, color: theme.muted,
+                fontStyle: 'italic', fontSize: 20, color: theme.muted,
               }}>
                 Hãy là người đầu tiên gửi lời chúc!
               </p>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <AnimatePresence initial={false}>
                 {entries.map((entry, i) => (
                   <motion.div
@@ -278,32 +278,34 @@ export default function GuestbookSection({ slug, theme }: Props) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: i < 5 ? i * 0.06 : 0 }}
                     style={{
-                      padding: '16px 18px',
+                      padding: '20px',
                       background: theme.bg,
+                      borderRadius: 16,
                       border: `1px solid ${theme.border}`,
+                      boxShadow: theme.isDark ? 'none' : '0 4px 20px rgba(0,0,0,0.03)'
                     }}
                   >
                     <div style={{
                       display: 'flex', justifyContent: 'space-between',
-                      alignItems: 'baseline', marginBottom: 8,
+                      alignItems: 'baseline', marginBottom: 10,
                     }}>
                       <p style={{
-                        fontFamily: "'Cormorant Garamond', serif",
-                        fontSize: 17, fontWeight: 400, color: theme.accent,
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: 15, fontWeight: 500, color: theme.accent,
                       }}>
                         {entry.guestName}
                       </p>
                       <p style={{
                         fontFamily: "'DM Mono', monospace",
-                        fontSize: 10, color: theme.muted, flexShrink: 0, marginLeft: 8,
+                        fontSize: 11, color: theme.muted, flexShrink: 0, marginLeft: 8,
                       }}>
                         {timeAgo(entry.createdAt)}
                       </p>
                     </div>
                     <p style={{
                       fontFamily: "'DM Sans', sans-serif",
-                      fontSize: 13, color: theme.text,
-                      lineHeight: 1.7, fontStyle: 'italic',
+                      fontSize: 14, color: theme.text,
+                      lineHeight: 1.6, opacity: 0.9
                     }}>
                       "{entry.message}"
                     </p>

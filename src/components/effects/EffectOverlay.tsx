@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useIsMobile } from '../../hooks/useIsMobile'
 
-export type EffectType = 'none' | 'petals' | 'sakura' | 'sparkles' | 'lanterns'
+export type EffectType = 'none' | 'petals' | 'sakura' | 'sparkles' | 'lanterns' | 'hearts'
 
 export interface EffectConfig {
   type: EffectType

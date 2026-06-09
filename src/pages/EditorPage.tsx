@@ -7,7 +7,7 @@ import { getInvitationOwned, saveInvitation, recordToData, InvitationRecord } fr
 import { apiError } from '../lib/api'
 import EditorSidebar from '../components/editor/EditorSidebar'
 import ShareModal from '../components/ShareModal'
-import { BloomTemplate, NoirTemplate, MinimalTemplate, VelvetTemplate } from '../templates'
+import { BloomTemplate, NoirTemplate, MinimalTemplate, VelvetTemplate, HeritageTemplate, GardenTemplate, CinematicTemplate } from '../templates'
 
 function TemplateRenderer({ data }: { data: InvitationData }) {
   switch (data.template) {
@@ -15,6 +15,9 @@ function TemplateRenderer({ data }: { data: InvitationData }) {
     case 'noir': return <NoirTemplate data={data} />
     case 'minimal': return <MinimalTemplate data={data} />
     case 'velvet': return <VelvetTemplate data={data} />
+    case 'heritage': return <HeritageTemplate data={data} />
+    case 'garden': return <GardenTemplate data={data} />
+    case 'cinematic': return <CinematicTemplate data={data} />
   }
 }
 
@@ -41,6 +44,7 @@ export default function EditorPage() {
   const [showShare, setShowShare] = useState(false)
   const [mobileTab, setMobileTab] = useState<MobileTab>('edit')
   const [error, setError] = useState<string | null>(null)
+  const [publishing, setPublishing] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -89,6 +93,17 @@ export default function EditorPage() {
 
   if (!data || !record) return <Spinner />
 
+  async function handleTogglePublished() {
+    if (!data || !record || publishing) return
+    setPublishing(true)
+    try {
+      const updated = await saveInvitation(record.id, data, !record.published)
+      setRecord(updated)
+    } finally {
+      setPublishing(false)
+    }
+  }
+
   const origin = window.location.origin
   const inviteUrl = `${origin}/invite/${record.slug}`
   const editUrl = `${origin}/editor/${record.id}`
@@ -114,6 +129,24 @@ export default function EditorPage() {
           {saveState === 'saved' ? 'Đã lưu' : saveState === 'saving' ? 'Đang lưu...' : '●'}
         </span>
         {children}
+        <button
+          onClick={handleTogglePublished}
+          disabled={publishing}
+          style={{
+            padding: '5px 12px',
+            border: `1px solid ${record.published ? '#A5D6A7' : '#E8DDD4'}`,
+            background: record.published ? '#F0FAF0' : 'transparent',
+            color: record.published ? '#2E7D32' : '#9C8C7C',
+            cursor: publishing ? 'wait' : 'pointer',
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 11,
+            fontWeight: 500,
+            opacity: publishing ? 0.6 : 1,
+            transition: 'all 0.15s',
+          }}
+        >
+          {publishing ? '...' : record.published ? 'Đã đăng' : 'Đăng thiệp'}
+        </button>
         <button onClick={() => setShowShare(true)} style={{ padding: '6px 14px', background: '#C4A882', color: '#FAFAF7', border: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500 }}>
           Chia sẻ
         </button>

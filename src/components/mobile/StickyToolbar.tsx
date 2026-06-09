@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { addGuestbook, sendReaction } from '../../store/invitationApi'
 import EffectOverlay from '../effects/EffectOverlay'
+import { TemplateTheme } from '../../types/invitation'
 
 interface Props {
   slug: string
   initialCount?: number
   allowReactions?: boolean
-  accentColor?: string
+  theme: TemplateTheme
 }
 
-export default function StickyToolbar({ slug, initialCount = 0, allowReactions = true, accentColor = '#C4A882' }: Props) {
+export default function StickyToolbar({ slug, initialCount = 0, allowReactions = true, theme }: Props) {
   const [count, setCount] = useState(initialCount)
   const [showBurst, setShowBurst] = useState(false)
   const [toolbarVisible, setToolbarVisible] = useState(true)
@@ -20,7 +21,6 @@ export default function StickyToolbar({ slug, initialCount = 0, allowReactions =
   const [submitted, setSubmitted] = useState(false)
   const burstTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Hide toolbar when soft keyboard opens (mobile)
   useEffect(() => {
     if (typeof window === 'undefined' || !window.visualViewport) return
     const vv = window.visualViewport!
@@ -63,49 +63,58 @@ export default function StickyToolbar({ slug, initialCount = 0, allowReactions =
 
   if (!toolbarVisible && !showModal) return null
 
+  const isDark = theme.isDark
+  const toolbarBg = isDark ? 'rgba(15,15,15,0.85)' : 'rgba(255,255,255,0.92)'
+  const pillBg = isDark ? 'rgba(255,255,255,0.1)' : '#F5F0EB'
+  const pillText = isDark ? '#FFF' : '#9C8C7C'
+  const modalBg = isDark ? theme.bg : '#fff'
+  const inputBg = isDark ? theme.soft : '#fff'
+
   return (
     <>
-      {/* Heart burst overlay */}
       {showBurst && (
         <EffectOverlay
-          config={{ type: 'hearts', intensity: 'medium', color: accentColor }}
+          config={{ type: 'hearts', intensity: 'medium', color: theme.accent }}
           burst
         />
       )}
 
-      {/* Wish modal */}
       {showModal && (
         <div
           style={{
             position: 'fixed', inset: 0, zIndex: 1010,
-            background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)',
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)',
             display: 'flex', alignItems: 'flex-end',
           }}
           onClick={e => { if (e.target === e.currentTarget) setShowModal(false) }}
         >
           <div style={{
-            width: '100%', background: '#fff', borderRadius: '20px 20px 0 0',
-            padding: '24px 20px 32px', boxShadow: '0 -4px 32px rgba(0,0,0,0.15)',
+            width: '100%', background: modalBg, borderRadius: '24px 24px 0 0',
+            padding: '24px 20px 32px', boxShadow: '0 -4px 32px rgba(0,0,0,0.2)',
+            borderTop: `1px solid ${theme.border}`
           }}>
-            <div style={{ width: 40, height: 4, background: '#E5E5E5', borderRadius: 2, margin: '0 auto 20px' }} />
-            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 500, textAlign: 'center', marginBottom: 20, color: '#2C2420' }}>
+            <div style={{ width: 40, height: 4, background: theme.border, borderRadius: 2, margin: '0 auto 24px' }} />
+            <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 24, fontWeight: 500, textAlign: 'center', marginBottom: 24, color: theme.text }}>
               Gửi lời chúc mừng 💌
             </p>
             {submitted ? (
-              <div style={{ textAlign: 'center', padding: '20px 0', color: accentColor, fontSize: 15 }}>
+              <div style={{ textAlign: 'center', padding: '20px 0', color: theme.accent, fontSize: 16 }}>
                 Cảm ơn bạn! Lời chúc đã được gửi 🎊
               </div>
             ) : (
-              <form onSubmit={handleSubmitWish} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <form onSubmit={handleSubmitWish} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <input
                   value={name}
                   onChange={e => setName(e.target.value)}
                   placeholder="Tên của bạn"
                   required
                   style={{
-                    padding: '12px 16px', borderRadius: 12, border: '1.5px solid #E8DDD4',
-                    fontSize: 14, outline: 'none', fontFamily: "'DM Sans', sans-serif",
+                    padding: '14px 18px', borderRadius: 14, border: `1px solid ${theme.border}`,
+                    background: inputBg, color: theme.text,
+                    fontSize: 15, outline: 'none', fontFamily: "'DM Sans', sans-serif",
                   }}
+                  onFocus={e => (e.target.style.borderColor = theme.accent)}
+                  onBlur={e => (e.target.style.borderColor = theme.border)}
                 />
                 <textarea
                   value={msg}
@@ -114,18 +123,22 @@ export default function StickyToolbar({ slug, initialCount = 0, allowReactions =
                   required
                   rows={3}
                   style={{
-                    padding: '12px 16px', borderRadius: 12, border: '1.5px solid #E8DDD4',
-                    fontSize: 14, resize: 'none', outline: 'none', fontFamily: "'DM Sans', sans-serif",
+                    padding: '14px 18px', borderRadius: 14, border: `1px solid ${theme.border}`,
+                    background: inputBg, color: theme.text,
+                    fontSize: 15, resize: 'none', outline: 'none', fontFamily: "'DM Sans', sans-serif",
                   }}
+                  onFocus={e => (e.target.style.borderColor = theme.accent)}
+                  onBlur={e => (e.target.style.borderColor = theme.border)}
                 />
                 <button
                   type="submit"
                   disabled={submitting}
                   style={{
-                    padding: '13px', borderRadius: 12, border: 'none',
-                    background: accentColor, color: '#fff', fontSize: 15,
+                    padding: '15px', borderRadius: 14, border: 'none', marginTop: 8,
+                    background: theme.accent, color: isDark ? theme.bg : '#fff', fontSize: 16,
                     fontWeight: 500, cursor: submitting ? 'not-allowed' : 'pointer',
                     opacity: submitting ? 0.7 : 1, fontFamily: "'DM Sans', sans-serif",
+                    letterSpacing: '0.05em'
                   }}
                 >
                   {submitting ? 'Đang gửi...' : 'Gửi lời chúc'}
@@ -136,59 +149,57 @@ export default function StickyToolbar({ slug, initialCount = 0, allowReactions =
         </div>
       )}
 
-      {/* Sticky toolbar */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000,
-        background: 'rgba(255,255,255,0.92)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        borderTop: '1px solid rgba(0,0,0,0.06)',
-        padding: '10px 16px 10px',
-        paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
-        display: 'flex', alignItems: 'center', gap: 10,
+        background: toolbarBg,
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
+        padding: '12px 16px',
+        paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
+        display: 'flex', alignItems: 'center', gap: 12,
       }}>
-        {/* Wish input pill */}
         <button
           onClick={() => setShowModal(true)}
           style={{
-            flex: 1, height: 42, borderRadius: 21,
-            background: '#F5F0EB', border: 'none',
-            textAlign: 'left', paddingLeft: 16, paddingRight: 16,
-            fontSize: 13, color: '#9C8C7C', cursor: 'pointer',
+            flex: 1, height: 46, borderRadius: 23,
+            background: pillBg, border: 'none',
+            textAlign: 'left', paddingLeft: 20, paddingRight: 20,
+            fontSize: 14, color: pillText, cursor: 'pointer',
             fontFamily: "'DM Sans', sans-serif",
-            display: 'flex', alignItems: 'center', gap: 8,
+            display: 'flex', alignItems: 'center', gap: 10,
+            transition: 'background 0.2s'
           }}
         >
-          <span style={{ fontSize: 16 }}>✍️</span>
+          <span style={{ fontSize: 18 }}>✍️</span>
           <span>Gửi lời chúc...</span>
         </button>
 
-        {/* Heart reaction button */}
         {allowReactions && (
           <button
             onClick={handleReaction}
             style={{
-              height: 42, padding: '0 16px', borderRadius: 21,
-              background: `linear-gradient(135deg, #FF6B8A, #FF8FAB)`,
+              height: 46, padding: '0 20px', borderRadius: 23,
+              background: `linear-gradient(135deg, #FF5B7E, #FF8FAB)`,
               border: 'none', cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 6,
-              fontSize: 13, color: '#fff', fontWeight: 500,
+              fontSize: 14, color: '#fff', fontWeight: 500,
               fontFamily: "'DM Sans', sans-serif",
-              boxShadow: '0 2px 12px rgba(255,107,138,0.35)',
-              transition: 'transform 0.12s',
+              boxShadow: isDark ? '0 4px 16px rgba(255,91,126,0.2)' : '0 4px 16px rgba(255,91,126,0.3)',
+              transition: 'transform 0.1s',
               flexShrink: 0,
             }}
-            onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.94)')}
+            onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.92)')}
             onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
-            onTouchStart={e => (e.currentTarget.style.transform = 'scale(0.94)')}
+            onTouchStart={e => (e.currentTarget.style.transform = 'scale(0.92)')}
             onTouchEnd={e => (e.currentTarget.style.transform = 'scale(1)')}
           >
-            <span style={{ fontSize: 16 }}>💗</span>
+            <span style={{ fontSize: 18 }}>💗</span>
             <span>Bắn tim</span>
             {count > 0 && (
               <span style={{
-                background: 'rgba(255,255,255,0.25)', borderRadius: 10,
-                padding: '1px 7px', fontSize: 11,
+                background: 'rgba(255,255,255,0.25)', borderRadius: 12,
+                padding: '2px 8px', fontSize: 12, marginLeft: 2
               }}>
                 {count >= 1000 ? `${(count / 1000).toFixed(1)}k` : count}
               </span>

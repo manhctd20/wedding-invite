@@ -2,14 +2,20 @@ import { useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { InvitationData, THEMES } from '../types/invitation'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { toLunarDate } from '../utils/lunar'
+import CalendarWidget from '../components/sections/CalendarWidget'
+import FamilySection from '../components/sections/FamilySection'
+import CoupleProfileSection from '../components/sections/CoupleProfileSection'
+import BankSection from '../components/sections/BankSection'
 import CountdownSection from '../components/sections/CountdownSection'
 import OurStorySection from '../components/sections/OurStorySection'
 import WeddingPartySection from '../components/sections/WeddingPartySection'
 import ScheduleSection from '../components/sections/ScheduleSection'
 import EffectOverlay from '../components/effects/EffectOverlay'
 import GuestbookSection from '../components/sections/GuestbookSection'
+import RsvpSection from '../components/sections/RsvpSection'
 
-interface Props { data: InvitationData }
+interface Props { data: InvitationData; guestName?: string }
 
 function fmt(d: string) {
   const dt = new Date(d)
@@ -18,10 +24,11 @@ function fmt(d: string) {
   return { day: String(dt.getDate()).padStart(2,'0'), month: months[dt.getMonth()], year: String(dt.getFullYear()), dayName: daysVi[dt.getDay()], full: dt.toLocaleDateString('vi-VN') }
 }
 
-export default function NoirTemplate({ data }: Props) {
+export default function NoirTemplate({ data, guestName }: Props) {
   const m = useIsMobile()
   const theme = THEMES.noir
   const date = fmt(data.weddingDate)
+  const lunar = toLunarDate(data.weddingDate)
   const effectConfig = { type: data.effectType ?? 'sparkles', intensity: data.effectIntensity ?? 'medium', color: data.effectColor }
   const cover = data.coverImage || `https://picsum.photos/seed/wedding-noir-${data.id}/900/1100`
   const heroRef = useRef<HTMLDivElement>(null)
@@ -46,7 +53,7 @@ export default function NoirTemplate({ data }: Props) {
           <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'center', padding:'36px 24px 56px' }}>
             <motion.p initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ duration:0.8, delay:0.3 }}
               style={{ fontFamily:"'DM Mono', monospace", fontSize:10, letterSpacing:'0.3em', textTransform:'uppercase', color: theme.muted, marginBottom:36 }}>
-              {date.dayName} / {date.day}.{date.month}.{date.year}
+              {guestName ? `Kính mời ${guestName}` : `${date.dayName} / ${date.day}.${date.month}.${date.year}`}
             </motion.p>
             <motion.h1 initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.8, delay:0.4 }}
               style={{ fontFamily:"'Cormorant Garamond', serif", fontWeight:300, fontSize:54, lineHeight:1.1, color: theme.text, marginBottom:10 }}>
@@ -64,6 +71,7 @@ export default function NoirTemplate({ data }: Props) {
             <div style={{ borderLeft:`2px solid ${theme.accent}`, paddingLeft:18 }}>
               <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:12, color: theme.muted, marginBottom:4 }}>{data.weddingTime}</p>
               <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:14, color: theme.text }}>{data.venueName}</p>
+              <p style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:12, color: theme.accent, marginTop:8, opacity:0.85 }}>{lunar.display}</p>
             </div>
           </div>
         </section>
@@ -78,7 +86,7 @@ export default function NoirTemplate({ data }: Props) {
           <div style={{ display:'flex', flexDirection:'column', justifyContent:'center', padding:'80px 52px 80px 40px' }}>
             <motion.p initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ duration:0.8, delay:0.3 }}
               style={{ fontFamily:"'DM Mono', monospace", fontSize:10, letterSpacing:'0.3em', textTransform:'uppercase', color: theme.muted, marginBottom:52 }}>
-              {date.dayName} / {date.day}.{date.month}.{date.year}
+              {guestName ? `Kính mời ${guestName}` : `${date.dayName} / ${date.day}.${date.month}.${date.year}`}
             </motion.p>
             <motion.h1 initial={{ opacity:0, x:-24 }} animate={{ opacity:1, x:0 }} transition={{ duration:0.8, delay:0.4 }}
               style={{ fontFamily:"'Cormorant Garamond', serif", fontWeight:300, fontSize:'clamp(40px,5vw,68px)', lineHeight:1.1, marginBottom:14 }}>
@@ -96,6 +104,7 @@ export default function NoirTemplate({ data }: Props) {
             <div style={{ borderLeft:`1px solid ${theme.accent}`, paddingLeft:22 }}>
               <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:13, color: theme.muted, marginBottom:4 }}>{data.weddingTime}</p>
               <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:14, color: theme.text }}>{data.venueName}</p>
+              <p style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize:12, color: theme.accent, marginTop:8, opacity:0.85 }}>{lunar.display}</p>
             </div>
           </div>
         </section>
@@ -122,6 +131,14 @@ export default function NoirTemplate({ data }: Props) {
         </div>
       </motion.section>
 
+      {/* ── Calendar ── */}
+      <motion.section
+        initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true, amount:0.4 }} transition={{ duration:0.7 }}
+        style={{ padding:`${m ? '48px' : '72px'} ${px} 0` }}
+      >
+        <CalendarWidget weddingDate={data.weddingDate} theme={theme} />
+      </motion.section>
+
       {/* ── Message ── */}
       {data.message && (
         <motion.section
@@ -132,6 +149,16 @@ export default function NoirTemplate({ data }: Props) {
             "{data.message}"
           </p>
         </motion.section>
+      )}
+
+      {/* ── Couple Profile ── */}
+      {data.showCoupleProfile && (
+        <CoupleProfileSection data={data} theme={theme} />
+      )}
+
+      {/* ── Family ── */}
+      {data.showFamily && (
+        <FamilySection data={data} theme={theme} />
       )}
 
       {/* ── Our Story ── */}
@@ -150,15 +177,12 @@ export default function NoirTemplate({ data }: Props) {
               <p style={{ fontFamily:"'DM Mono', monospace", fontSize:10, letterSpacing:'0.3em', textTransform:'uppercase', color: theme.accent, marginBottom:14 }}>Địa điểm</p>
               <h3 style={{ fontFamily:"'Cormorant Garamond', serif", fontWeight:400, fontSize: m ? 24:28, color: theme.text, marginBottom:10 }}>{data.venueName}</h3>
               <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:14, color: theme.muted, lineHeight:1.7 }}>{data.venueAddress}</p>
+              {data.venueMapUrl && (
+                <a href={data.venueMapUrl} target="_blank" rel="noopener noreferrer" style={{ display:'inline-block', marginTop:12, fontFamily:"'DM Sans', sans-serif", fontSize:12, letterSpacing:'0.1em', textTransform:'uppercase', color: theme.text, borderBottom:`1px solid ${theme.text}`, textDecoration:'none', paddingBottom:2 }}>
+                  Xem bản đồ
+                </a>
+              )}
             </div>
-            {data.showRsvp && (
-              <div style={{ borderTop: m ? `1px solid ${theme.border}`:'none', paddingTop: m ? 24:0 }}>
-                <p style={{ fontFamily:"'DM Mono', monospace", fontSize:10, letterSpacing:'0.3em', textTransform:'uppercase', color: theme.accent, marginBottom:14 }}>RSVP</p>
-                <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:14, color: theme.text, marginBottom:6 }}>{data.rsvpName}</p>
-                <a href={`tel:${data.rsvpPhone}`} style={{ fontFamily:"'DM Mono', monospace", fontSize: m ? 20:17, color: theme.accent, letterSpacing:'0.05em', display:'block', marginBottom:10 }}>{data.rsvpPhone}</a>
-                {data.rsvpDeadline && <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:12, color: theme.muted }}>Xác nhận trước {new Date(data.rsvpDeadline).toLocaleDateString('vi-VN')}</p>}
-              </div>
-            )}
           </div>
         </div>
       </motion.section>
@@ -189,6 +213,14 @@ export default function NoirTemplate({ data }: Props) {
           </div>
         </motion.section>
       )}
+
+      {/* ── Bank ── */}
+      {data.showBank && data.bankAccounts && (
+        <BankSection accounts={data.bankAccounts} theme={theme} />
+      )}
+
+      {/* ── RSVP ── */}
+      {data.showRsvp && <RsvpSection slug={data.id} rsvpName={data.rsvpName} rsvpPhone={data.rsvpPhone} rsvpDeadline={data.rsvpDeadline} theme={theme} />}
 
       {/* ── Guestbook ── */}
       {data.showGuestbook && <GuestbookSection slug={data.id} theme={theme} />}

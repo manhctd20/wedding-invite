@@ -1,5 +1,5 @@
 import { useState, useRef, ChangeEvent } from 'react'
-import { InvitationData, TemplateId, TEMPLATE_META, StoryMilestone, WeddingPartyMember, ScheduleEvent, EffectType, EffectIntensity } from '../../types/invitation'
+import { InvitationData, TemplateId, TEMPLATE_META, StoryMilestone, WeddingPartyMember, ScheduleEvent, EffectType, EffectIntensity, BankAccount } from '../../types/invitation'
 import { EFFECT_META } from '../effects/EffectOverlay'
 
 interface Props {
@@ -237,15 +237,63 @@ function ScheduleEditor({ events, onChange }: { events: ScheduleEvent[]; onChang
   )
 }
 
+// ─── Bank Editor ───────────────────────────────────────────────
+
+function BankEditor({ accounts, onChange }: { accounts: BankAccount[]; onChange: (v: BankAccount[]) => void }) {
+  function update(id: string, patch: Partial<BankAccount>) {
+    onChange(accounts.map(a => a.id === id ? { ...a, ...patch } : a))
+  }
+  function remove(id: string) { onChange(accounts.filter(a => a.id !== id)) }
+  function add() { onChange([...accounts, { id: uid(), bankName: '', accountNumber: '', accountName: '', side: 'both' }]) }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {accounts.map((acc, i) => (
+        <div key={acc.id} style={{ border: '1px solid #E8DDD4', padding: 12, background: '#FFF' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: '#C4A882', fontWeight: 500 }}>Tài khoản #{i + 1}</span>
+            <button onClick={() => remove(acc.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C4A882', fontSize: 16, lineHeight: 1, padding: 2 }}>×</button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+            <Field label="Ngân hàng (Tên / Mã)"><input style={inp} value={acc.bankName} onChange={e => update(acc.id, { bankName: e.target.value })} placeholder="VD: Vietcombank, Momo..." /></Field>
+            <Field label="Số tài khoản"><input style={inp} value={acc.accountNumber} onChange={e => update(acc.id, { accountNumber: e.target.value })} placeholder="123456789" /></Field>
+            <Field label="Tên chủ tài khoản"><input style={inp} value={acc.accountName} onChange={e => update(acc.id, { accountName: e.target.value })} placeholder="NGUYEN VAN A" /></Field>
+            <Field label="Đại diện cho">
+              <select style={inp} value={acc.side} onChange={e => update(acc.id, { side: e.target.value as any })}>
+                <option value="bride">Nhà Gái</option>
+                <option value="groom">Nhà Trai</option>
+                <option value="both">Chung</option>
+              </select>
+            </Field>
+          </div>
+        </div>
+      ))}
+      <button onClick={add} style={{ padding: '8px', border: '1px dashed #C4A882', background: 'none', fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: '#9C8C7C', cursor: 'pointer' }}>
+        + Thêm tài khoản
+      </button>
+    </div>
+  )
+}
+
 // ─── Main Sidebar ─────────────────────────────────────────────
 
 export default function EditorSidebar({ data, onChange }: Props) {
-  const galleryRef = useRef<HTMLInputElement>(null)
   const coverRef = useRef<HTMLInputElement>(null)
+  const brideImgRef = useRef<HTMLInputElement>(null)
+  const groomImgRef = useRef<HTMLInputElement>(null)
+  const galleryRef = useRef<HTMLInputElement>(null)
 
   function handleCover(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]; if (!file) return
     const r = new FileReader(); r.onload = ev => onChange({ coverImage: ev.target?.result as string }); r.readAsDataURL(file)
+  }
+  function handleBrideImg(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]; if (!file) return
+    const r = new FileReader(); r.onload = ev => onChange({ brideImage: ev.target?.result as string }); r.readAsDataURL(file)
+  }
+  function handleGroomImg(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]; if (!file) return
+    const r = new FileReader(); r.onload = ev => onChange({ groomImage: ev.target?.result as string }); r.readAsDataURL(file)
   }
   function handleGallery(e: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []); if (!files.length) return
@@ -261,8 +309,19 @@ export default function EditorSidebar({ data, onChange }: Props) {
           {(Object.keys(TEMPLATE_META) as TemplateId[]).map(tid => {
             const meta = TEMPLATE_META[tid]; const active = data.template === tid
             return (
-              <button key={tid} onClick={() => onChange({ template: tid })}
-                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', border: `1px solid ${active ? '#C4A882' : '#E8DDD4'}`, background: active ? '#F5EDE4' : '#FFF', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}>
+              <button key={tid} onClick={() => {
+                if (meta.isPremium) {
+                  alert('Template này thuộc gói Premium. Tính năng nâng cấp đang được phát triển!')
+                  return
+                }
+                onChange({ template: tid })
+              }}
+                style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, padding: '9px 11px', border: `1px solid ${active ? '#C4A882' : '#E8DDD4'}`, background: active ? '#F5EDE4' : '#FFF', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s' }}>
+                
+                {meta.isPremium && (
+                  <div style={{ position: 'absolute', top: 0, right: 0, background: '#C4A882', color: '#FFF', fontSize: 8, fontWeight: 700, padding: '2px 6px', letterSpacing: '0.1em' }}>PRO</div>
+                )}
+
                 <div style={{ display: 'flex', gap: 3 }}>
                   {meta.palette.map((c, i) => <div key={i} style={{ width: 12, height: 12, borderRadius: '50%', background: c, border: '1px solid rgba(0,0,0,0.08)' }} />)}
                 </div>
@@ -284,6 +343,9 @@ export default function EditorSidebar({ data, onChange }: Props) {
           <Toggle checked={data.showSchedule} onChange={v => onChange({ showSchedule: v })} label="Lịch trình trong ngày" />
           <Toggle checked={data.showParty} onChange={v => onChange({ showParty: v })} label="Đội hình hạnh phúc" />
           <Toggle checked={data.showGallery} onChange={v => onChange({ showGallery: v })} label="Ảnh gallery" />
+          <Toggle checked={data.showCoupleProfile ?? true} onChange={v => onChange({ showCoupleProfile: v })} label="Hồ sơ cặp đôi" />
+          <Toggle checked={data.showFamily ?? true} onChange={v => onChange({ showFamily: v })} label="Gia đình hai bên" />
+          <Toggle checked={data.showBank ?? true} onChange={v => onChange({ showBank: v })} label="Mừng cưới (QR Ngân hàng)" />
           <Toggle checked={data.showRsvp} onChange={v => onChange({ showRsvp: v })} label="RSVP xác nhận" />
           <Toggle checked={data.showGuestbook ?? true} onChange={v => onChange({ showGuestbook: v })} label="Sổ lưu bút (lời chúc)" />
         </div>
@@ -295,10 +357,55 @@ export default function EditorSidebar({ data, onChange }: Props) {
           <Field label="Tên cô dâu"><input style={inp} value={data.brideFirstName} onChange={e => onChange({ brideFirstName: e.target.value })} placeholder="Ngọc" /></Field>
           <Field label="Họ cô dâu"><input style={inp} value={data.brideLastName} onChange={e => onChange({ brideLastName: e.target.value })} placeholder="Linh" /></Field>
         </div>
+        <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+          <div style={{ flex: 1 }}>
+            <Field label="Tiểu sử / Lời giới thiệu (Cô dâu)">
+              <textarea style={{ ...ta, minHeight: 60 }} value={data.brideBio || ''} onChange={e => onChange({ brideBio: e.target.value })} placeholder="Giới thiệu ngắn về cô dâu..." />
+            </Field>
+          </div>
+          <div style={{ width: 80, flexShrink: 0 }}>
+            <Field label="Ảnh (vuông)">
+              <div onClick={() => brideImgRef.current?.click()} style={{ width: '100%', aspectRatio: '1', border: '1px dashed #C4A882', cursor: 'pointer', overflow: 'hidden', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {data.brideImage ? <img src={data.brideImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 20, color: '#9C8C7C' }}>+</span>}
+              </div>
+              <input ref={brideImgRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleBrideImg} />
+            </Field>
+          </div>
+        </div>
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           <Field label="Tên chú rể"><input style={inp} value={data.groomFirstName} onChange={e => onChange({ groomFirstName: e.target.value })} placeholder="Minh" /></Field>
           <Field label="Họ chú rể"><input style={inp} value={data.groomLastName} onChange={e => onChange({ groomLastName: e.target.value })} placeholder="Tuấn" /></Field>
         </div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <div style={{ flex: 1 }}>
+            <Field label="Tiểu sử / Lời giới thiệu (Chú rể)">
+              <textarea style={{ ...ta, minHeight: 60 }} value={data.groomBio || ''} onChange={e => onChange({ groomBio: e.target.value })} placeholder="Giới thiệu ngắn về chú rể..." />
+            </Field>
+          </div>
+          <div style={{ width: 80, flexShrink: 0 }}>
+            <Field label="Ảnh (vuông)">
+              <div onClick={() => groomImgRef.current?.click()} style={{ width: '100%', aspectRatio: '1', border: '1px dashed #C4A882', cursor: 'pointer', overflow: 'hidden', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {data.groomImage ? <img src={data.groomImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 20, color: '#9C8C7C' }}>+</span>}
+              </div>
+              <input ref={groomImgRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleGroomImg} />
+            </Field>
+          </div>
+        </div>
+      </AccordionSection>
+
+      <AccordionSection title="Gia đình hai bên">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+          <Field label="Bố cô dâu"><input style={inp} value={data.brideFather} onChange={e => onChange({ brideFather: e.target.value })} placeholder="Tên bố" /></Field>
+          <Field label="Mẹ cô dâu"><input style={inp} value={data.brideMother} onChange={e => onChange({ brideMother: e.target.value })} placeholder="Tên mẹ" /></Field>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <Field label="Bố chú rể"><input style={inp} value={data.groomFather} onChange={e => onChange({ groomFather: e.target.value })} placeholder="Tên bố" /></Field>
+          <Field label="Mẹ chú rể"><input style={inp} value={data.groomMother} onChange={e => onChange({ groomMother: e.target.value })} placeholder="Tên mẹ" /></Field>
+        </div>
+      </AccordionSection>
+
+      <AccordionSection title="Kiểu chữ & Lời nhắn">
         <Field label="Kiểu chữ tên">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
             {(['serif', 'script'] as const).map(f => {
@@ -328,6 +435,7 @@ export default function EditorSidebar({ data, onChange }: Props) {
         </div>
         <Field label="Tên địa điểm"><input style={inp} value={data.venueName} onChange={e => onChange({ venueName: e.target.value })} /></Field>
         <Field label="Địa chỉ"><textarea style={{ ...ta, minHeight: 60 }} value={data.venueAddress} onChange={e => onChange({ venueAddress: e.target.value })} /></Field>
+        <Field label="Link Google Maps (tuỳ chọn)"><input style={inp} value={data.venueMapUrl || ''} onChange={e => onChange({ venueMapUrl: e.target.value })} placeholder="https://maps.app.goo.gl/..." /></Field>
       </AccordionSection>
 
       {/* ── Our Story ── */}
@@ -350,6 +458,11 @@ export default function EditorSidebar({ data, onChange }: Props) {
         <Field label="Tên liên hệ"><input style={inp} value={data.rsvpName} onChange={e => onChange({ rsvpName: e.target.value })} /></Field>
         <Field label="Số điện thoại"><input style={inp} value={data.rsvpPhone} onChange={e => onChange({ rsvpPhone: e.target.value })} placeholder="0912 345 678" /></Field>
         <Field label="Hạn xác nhận"><input type="date" style={inp} value={data.rsvpDeadline} onChange={e => onChange({ rsvpDeadline: e.target.value })} /></Field>
+      </AccordionSection>
+
+      {/* ── Bank ── */}
+      <AccordionSection title="QR Mừng cưới" badge={`${data.bankAccounts.length}`}>
+        <BankEditor accounts={data.bankAccounts} onChange={v => onChange({ bankAccounts: v })} />
       </AccordionSection>
 
       {/* ── Media ── */}

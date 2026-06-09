@@ -13,10 +13,10 @@ D:\wedding-invite\start-dev.bat
 # Cách 2 — từng bước:
 docker start wedding-postgres          # Postgres (cần Docker Desktop mở trước)
 cd D:\wedding-invite-be && npm run start:dev   # Backend :4000
-cd D:\wedding-invite && npm run dev -- --port 5174 --host  # Frontend :5174
+cd D:\wedding-invite && npm run dev -- --port 5173 --host  # Frontend :5173
 ```
 
-**URLs:** http://localhost:5174 | Admin: http://localhost:5174/admin | API: http://localhost:4000/api
+**URLs:** http://localhost:5173 | Admin: http://localhost:5173/admin | API: http://localhost:4000/api
 
 **Tài khoản test:**
 | Role | Email | Password |
@@ -292,11 +292,11 @@ Modal chỉnh sửa template có 4 tabs:
 ## Roadmap / TODO
 
 - [x] Guestbook — GuestbookSection.tsx, bật/tắt bằng showGuestbook toggle, BE endpoints có sẵn
-- [ ] RSVP form thực trong InvitePage (submit → BE)
-- [ ] Personalised URL: `/invite/:slug?guest=TenKhach` hiển thị "Kính mời [Tên]"
-- [ ] Background music (URL input + autoplay + mute button cố định góc)
-- [ ] Upload ảnh thật lên server (hiện base64 trong jsonb → nặng)
-- [ ] Published toggle trong EditorPage (hiện luôn false)
-- [ ] RSVP dashboard trong DashboardPage (xem ai xác nhận)
+- [x] RSVP form thực — RsvpSection.tsx, form inline (tên/status/số người/ghi chú), dùng trong tất cả 7 templates
+- [x] Personalised URL: `/invite/:slug?guest=TenKhach` — InvitePage đọc `?guest=` và pass vào template
+- [x] Background music — MusicToggle component, URL input trong EditorSidebar
+- [x] Published toggle trong EditorPage — nút "Đăng thiệp / Đã đăng" trên TopBar, gọi saveInvitation với published param
+- [x] RSVP dashboard trong DashboardPage — AnalyticsModal hiển thị danh sách RSVP + stats
+- [ ] Upload ảnh thật lên server (hiện base64 trong jsonb → nặng) — cần BE endpoint upload
 - [ ] AI generate theme thật: endpoint BE → gọi Claude/OpenAI → trả TemplateTheme
 - [ ] Guestbook moderation trong admin

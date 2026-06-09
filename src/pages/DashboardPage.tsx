@@ -4,6 +4,7 @@ import { useAuth } from '../store/auth'
 import { getMyInvitations, createInvitation, deleteInvitation, InvitationRecord } from '../store/invitationApi'
 import { apiError } from '../lib/api'
 import { TEMPLATE_META } from '../types/invitation'
+import AnalyticsModal from '../components/dashboard/AnalyticsModal'
 
 export default function DashboardPage() {
   const { user, logout } = useAuth()
@@ -12,6 +13,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
+  const [analyticsInv, setAnalyticsInv] = useState<InvitationRecord | null>(null)
 
   useEffect(() => {
     getMyInvitations().then(setInvs).catch(e => setError(apiError(e))).finally(() => setLoading(false))
@@ -103,7 +105,7 @@ export default function DashboardPage() {
                     <div>
                       <p style={{ fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#9C8C7C', marginBottom: 4 }}>{tplMeta.label}</p>
                       <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: '#2C2420', fontWeight: 400, lineHeight: 1.2 }}>
-                        {inv.content?.brideFirstName} &amp; {inv.content?.groomFirstName}
+                        {inv.content?.brideFirstName} & {inv.content?.groomFirstName}
                       </p>
                       {date && <p style={{ fontSize: 12, color: '#9C8C7C', marginTop: 4 }}>{date}</p>}
                     </div>
@@ -112,22 +114,37 @@ export default function DashboardPage() {
                     </span>
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#9C8C7C' }}>
-                    <span>👁 {inv.viewCount}</span>
+                  {/* Analytics quick-stats */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: '#9C8C7C', background: '#FAFAF7', padding: '8px 12px', border: '1px solid #F0EBE4' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span>👁</span>
+                      <strong style={{ color: '#2C2420' }}>{inv.viewCount ?? 0}</strong>
+                    </span>
+                    <span style={{ color: '#E8DDD4' }}>|</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span>❤️</span>
+                      <strong style={{ color: '#2C2420' }}>{(inv.content as any)?.reactionCount ?? 0}</strong>
+                    </span>
                     <span style={{ color: '#E8DDD4' }}>|</span>
                     <span>Sửa: {new Date(inv.updatedAt).toLocaleDateString('vi-VN')}</span>
                   </div>
 
-                  <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                  <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' as const }}>
                     <button
                       onClick={() => navigate(`/editor/${inv.id}`)}
                       style={{ flex: 1, padding: '8px', background: '#2C2420', color: '#FAFAF7', border: 'none', cursor: 'pointer', fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}
                     >
                       Chỉnh sửa
                     </button>
+                    <button
+                      onClick={() => setAnalyticsInv(inv)}
+                      style={{ flex: 1, padding: '8px', border: '1px solid #C4A882', color: '#C4A882', background: 'none', cursor: 'pointer', fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}
+                    >
+                      📊 Thống kê
+                    </button>
                     <a
                       href={`/invite/${inv.slug}`} target="_blank" rel="noreferrer"
-                      style={{ flex: 1, padding: '8px', border: '1px solid #E8DDD4', color: '#2C2420', fontSize: 12, textDecoration: 'none', textAlign: 'center', fontFamily: "'DM Sans', sans-serif" }}
+                      style={{ flex: 1, padding: '8px', border: '1px solid #E8DDD4', color: '#2C2420', fontSize: 12, textDecoration: 'none', textAlign: 'center' as const, fontFamily: "'DM Sans', sans-serif" }}
                     >
                       Xem thiệp
                     </a>
@@ -144,6 +161,11 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
+
+      {/* Analytics Modal */}
+      {analyticsInv && (
+        <AnalyticsModal inv={analyticsInv} onClose={() => setAnalyticsInv(null)} />
+      )}
     </div>
   )
 }

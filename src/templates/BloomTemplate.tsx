@@ -2,14 +2,20 @@ import { useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { InvitationData, THEMES } from '../types/invitation'
 import { useIsMobile } from '../hooks/useIsMobile'
+import { toLunarDate } from '../utils/lunar'
+import CalendarWidget from '../components/sections/CalendarWidget'
+import FamilySection from '../components/sections/FamilySection'
+import CoupleProfileSection from '../components/sections/CoupleProfileSection'
+import BankSection from '../components/sections/BankSection'
 import CountdownSection from '../components/sections/CountdownSection'
 import OurStorySection from '../components/sections/OurStorySection'
 import WeddingPartySection from '../components/sections/WeddingPartySection'
 import ScheduleSection from '../components/sections/ScheduleSection'
 import EffectOverlay from '../components/effects/EffectOverlay'
 import GuestbookSection from '../components/sections/GuestbookSection'
+import RsvpSection from '../components/sections/RsvpSection'
 
-interface Props { data: InvitationData }
+interface Props { data: InvitationData; guestName?: string }
 
 function formatDate(d: string) {
   const dt = new Date(d)
@@ -24,10 +30,11 @@ function formatDate(d: string) {
   }
 }
 
-export default function BloomTemplate({ data }: Props) {
+export default function BloomTemplate({ data, guestName }: Props) {
   const m = useIsMobile()
   const theme = THEMES.bloom
   const date = formatDate(data.weddingDate)
+  const lunar = toLunarDate(data.weddingDate)
   const effectConfig = { type: data.effectType ?? 'petals', intensity: data.effectIntensity ?? 'medium', color: data.effectColor }
   const cover = data.coverImage || `https://picsum.photos/seed/wedding-bloom-${data.id}/900/1100`
   const heroRef = useRef<HTMLDivElement>(null)
@@ -60,7 +67,7 @@ export default function BloomTemplate({ data }: Props) {
             initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.8, delay:0.2 }}
             style={{ fontFamily:"'DM Sans', sans-serif", fontSize:11, letterSpacing:'0.28em', textTransform:'uppercase', color: theme.muted, marginBottom: m ? 20:32 }}
           >
-            Trân trọng kính mời
+            {guestName ? `Kính mời ${guestName}` : 'Trân trọng kính mời'}
           </motion.p>
 
           <motion.h1
@@ -102,6 +109,7 @@ export default function BloomTemplate({ data }: Props) {
           >
             <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize: m ? 12:13, letterSpacing:'0.12em', textTransform:'uppercase', color: theme.muted }}>{date.full}</p>
             <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize: m ? 12:13, color: theme.muted }}>{data.weddingTime} &bull; {data.venueName}</p>
+            <p style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize: m ? 12:13, color: theme.accent, marginTop: 8, opacity: 0.85 }}>{lunar.display}</p>
           </motion.div>
         </motion.div>
 
@@ -141,6 +149,14 @@ export default function BloomTemplate({ data }: Props) {
         </div>
       </motion.section>
 
+      {/* ── Calendar ── */}
+      <motion.section
+        initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true, amount:0.4 }} transition={{ duration:0.7 }}
+        style={{ padding:`${m ? '48px' : '72px'} ${px} 0` }}
+      >
+        <CalendarWidget weddingDate={data.weddingDate} theme={theme} />
+      </motion.section>
+
       {/* ── Message ── */}
       {data.message && (
         <motion.section
@@ -153,6 +169,16 @@ export default function BloomTemplate({ data }: Props) {
             </p>
           </div>
         </motion.section>
+      )}
+
+      {/* ── Couple Profile ── */}
+      {data.showCoupleProfile && (
+        <CoupleProfileSection data={data} theme={theme} />
+      )}
+
+      {/* ── Family ── */}
+      {data.showFamily && (
+        <FamilySection data={data} theme={theme} />
       )}
 
       {/* ── Our Story ── */}
@@ -169,6 +195,11 @@ export default function BloomTemplate({ data }: Props) {
           <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:11, letterSpacing:'0.25em', textTransform:'uppercase', color: theme.accent, marginBottom:20 }}>Địa điểm tổ chức</p>
           <h3 style={{ fontFamily:"'Cormorant Garamond', serif", fontWeight:400, fontSize: m ? 26:32, color: theme.text, marginBottom:10 }}>{data.venueName}</h3>
           <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:14, color: theme.muted, lineHeight:1.7 }}>{data.venueAddress}</p>
+          {data.venueMapUrl && (
+            <a href={data.venueMapUrl} target="_blank" rel="noopener noreferrer" style={{ display:'inline-block', marginTop:16, fontFamily:"'DM Sans', sans-serif", fontSize:12, letterSpacing:'0.1em', textTransform:'uppercase', color: theme.text, borderBottom:`1px solid ${theme.text}`, textDecoration:'none', paddingBottom:2 }}>
+              Xem bản đồ
+            </a>
+          )}
           <div style={{ marginTop:24, paddingTop:24, borderTop:`1px solid ${theme.border}` }}>
             <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:12, color: theme.muted }}>
               {data.weddingTime} &mdash; Vui lòng đến đúng giờ
@@ -205,23 +236,11 @@ export default function BloomTemplate({ data }: Props) {
       )}
 
       {/* ── RSVP ── */}
-      {data.showRsvp && (
-        <motion.section
-          initial={{ opacity:0, y:24 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true, amount:0.4 }} transition={{ duration:0.7 }}
-          style={{ padding:`0 ${px} ${m ? 64:100}px`, textAlign:'center' }}
-        >
-          <div style={{ maxWidth:480, margin:'0 auto' }}>
-            <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:11, letterSpacing:'0.25em', textTransform:'uppercase', color: theme.accent, marginBottom:20 }}>Xác nhận tham dự</p>
-            <h3 style={{ fontFamily:"'Cormorant Garamond', serif", fontWeight:400, fontSize: m ? 22:28, color: theme.text, marginBottom:8 }}>Vui lòng xác nhận trước</h3>
-            {data.rsvpDeadline && (
-              <p style={{ fontFamily:"'Cormorant Garamond', serif", fontStyle:'italic', fontSize: m ? 18:22, color: theme.accent, marginBottom:28 }}>
-                {formatDate(data.rsvpDeadline).rsvpFull}
-              </p>
-            )}
-            <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:14, color:'#5C4C3C', marginBottom:6 }}>{data.rsvpName}</p>
-            <a href={`tel:${data.rsvpPhone}`} style={{ fontFamily:"'DM Mono', monospace", fontSize: m ? 20:18, color: theme.text, letterSpacing:'0.05em', display:'block' }}>{data.rsvpPhone}</a>
-          </div>
-        </motion.section>
+      {data.showRsvp && <RsvpSection slug={data.id} rsvpName={data.rsvpName} rsvpPhone={data.rsvpPhone} rsvpDeadline={data.rsvpDeadline} theme={theme} />}
+
+      {/* ── Bank ── */}
+      {data.showBank && data.bankAccounts && (
+        <BankSection accounts={data.bankAccounts} theme={theme} />
       )}
 
       {/* ── Guestbook ── */}

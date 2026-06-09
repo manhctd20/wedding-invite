@@ -1,4 +1,4 @@
-export type TemplateId = 'bloom' | 'noir' | 'minimal' | 'velvet'
+export type TemplateId = 'bloom' | 'noir' | 'minimal' | 'velvet' | 'heritage' | 'garden' | 'cinematic'
 export type EffectType = 'none' | 'petals' | 'sakura' | 'sparkles' | 'lanterns' | 'hearts'
 export type EffectIntensity = 'light' | 'medium' | 'heavy'
 
@@ -29,6 +29,14 @@ export interface ScheduleEvent {
   location: string
 }
 
+export interface BankAccount {
+  id: string
+  bankName: string
+  accountNumber: string
+  accountName: string
+  side: 'bride' | 'groom' | 'both'
+}
+
 // ─── Main model ───────────────────────────────────────────────
 
 export interface InvitationData {
@@ -39,8 +47,18 @@ export interface InvitationData {
   // Couple
   brideFirstName: string
   brideLastName: string
+  brideBio?: string
+  brideImage?: string | null
   groomFirstName: string
   groomLastName: string
+  groomBio?: string
+  groomImage?: string | null
+
+  // Family
+  groomFather: string
+  groomMother: string
+  brideFather: string
+  brideMother: string
 
   // Event
   weddingDate: string
@@ -49,6 +67,7 @@ export interface InvitationData {
   // Venue
   venueName: string
   venueAddress: string
+  venueMapUrl?: string
 
   // Content
   message: string
@@ -66,6 +85,7 @@ export interface InvitationData {
   storyMilestones: StoryMilestone[]
   weddingParty: WeddingPartyMember[]
   scheduleEvents: ScheduleEvent[]
+  bankAccounts: BankAccount[]
 
   // Section visibility toggles
   showCountdown: boolean
@@ -75,6 +95,9 @@ export interface InvitationData {
   showGallery: boolean
   showRsvp: boolean
   showGuestbook: boolean
+  showFamily: boolean
+  showBank: boolean
+  showCoupleProfile: boolean
 
   // Visual effects
   effectType: EffectType
@@ -145,11 +168,38 @@ export const THEMES: Record<TemplateId, TemplateTheme> = {
     soft: '#18132A',
     isDark: true,
   },
+  heritage: {
+    bg: '#FAF3E0',
+    text: '#4A1C1C',
+    accent: '#D4AF37',
+    muted: '#8B5A5A',
+    border: '#E5C99F',
+    soft: '#F4E8D1',
+    isDark: false,
+  },
+  garden: {
+    bg: '#F7FCF5',
+    text: '#1C3B2B',
+    accent: '#6B8E7B',
+    muted: '#5C7A68',
+    border: '#D0E3D3',
+    soft: '#EAF3EB',
+    isDark: false,
+  },
+  cinematic: {
+    bg: '#111111',
+    text: '#F5F5F5',
+    accent: '#D4D4D4',
+    muted: '#888888',
+    border: '#333333',
+    soft: '#222222',
+    isDark: true,
+  },
 }
 
 // ─── Template meta ────────────────────────────────────────────
 
-export const TEMPLATE_META: Record<TemplateId, { label: string; desc: string; palette: string[] }> = {
+export const TEMPLATE_META: Record<TemplateId, { label: string; desc: string; palette: string[]; isPremium?: boolean }> = {
   bloom: {
     label: 'Bloom',
     desc: 'Lãng mạn, tinh tế — tông kem và hồng nhẹ',
@@ -170,6 +220,24 @@ export const TEMPLATE_META: Record<TemplateId, { label: string; desc: string; pa
     desc: 'Huyền bí, lãng mạn — tím đêm và vàng ánh',
     palette: ['#100D1A', '#C9924A', '#F0E8DC'],
   },
+  heritage: {
+    label: 'Heritage',
+    desc: 'Truyền thống, trang trọng — đỏ đô và vàng đồng',
+    palette: ['#FAF3E0', '#D4AF37', '#4A1C1C'],
+    // isPremium: true,
+  },
+  garden: {
+    label: 'Garden',
+    desc: 'Tươi mát, thiên nhiên — xanh rêu và mộc mạc',
+    palette: ['#F7FCF5', '#6B8E7B', '#1C3B2B'],
+    // isPremium: true,
+  },
+  cinematic: {
+    label: 'Cinematic',
+    desc: 'Điện ảnh, hiện đại — đen tuyền, chữ nổi bật',
+    palette: ['#111111', '#F5F5F5', '#888888'],
+    // isPremium: true,
+  },
 }
 
 // ─── Defaults ─────────────────────────────────────────────────
@@ -185,12 +253,21 @@ export function createDefaultInvitation(id: string, editKey: string): Invitation
     template: 'bloom',
     brideFirstName: 'Ngọc',
     brideLastName: 'Linh',
+    brideBio: 'Một cô gái yêu thích sự nhẹ nhàng và lãng mạn. Với tôi, tình yêu là một chuyến đi dài.',
+    brideImage: null,
     groomFirstName: 'Minh',
     groomLastName: 'Tuấn',
+    groomBio: 'Người đàn ông trưởng thành, trầm tính, thích đi phượt và muốn là chỗ dựa vững chắc cho gia đình.',
+    groomImage: null,
+    groomFather: 'Ông Trần Văn A',
+    groomMother: 'Bà Nguyễn Thị B',
+    brideFather: 'Ông Lê Văn C',
+    brideMother: 'Bà Phạm Thị D',
     weddingDate: '2026-12-20',
     weddingTime: '18:00',
     venueName: 'Grand Palace Ballroom',
     venueAddress: '123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
+    venueMapUrl: '',
     message: 'Chúng tôi trân trọng kính mời bạn đến chung vui trong ngày trọng đại của chúng tôi.',
     rsvpName: 'Minh Tuấn',
     rsvpPhone: '0912 345 678',
@@ -215,6 +292,10 @@ export function createDefaultInvitation(id: string, editKey: string): Invitation
       { id: uid(), time: '18:00', title: 'Tiệc cưới', description: 'Tiệc mừng hạnh phúc cùng gia đình và bạn bè', location: 'Sảnh tiệc - Tầng 2' },
       { id: uid(), time: '21:00', title: 'Cắt bánh cưới', description: 'Nghi thức cắt bánh và mở rượu champagne', location: 'Sảnh tiệc' },
     ],
+    bankAccounts: [
+      { id: uid(), bankName: 'Vietcombank', accountNumber: '1234567890', accountName: 'LE NGOC LINH', side: 'bride' },
+      { id: uid(), bankName: 'MB Bank', accountNumber: '0987654321', accountName: 'TRAN MINH TUAN', side: 'groom' }
+    ],
     showCountdown: true,
     showStory: true,
     showParty: true,
@@ -222,6 +303,9 @@ export function createDefaultInvitation(id: string, editKey: string): Invitation
     showGallery: true,
     showRsvp: true,
     showGuestbook: true,
+    showFamily: true,
+    showBank: true,
+    showCoupleProfile: true,
     musicUrl: undefined,
     musicTitle: undefined,
     coupleNameFont: 'serif',
