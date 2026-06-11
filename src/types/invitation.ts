@@ -1,4 +1,4 @@
-export type TemplateId = 'bloom' | 'noir' | 'minimal' | 'velvet' | 'heritage' | 'garden' | 'cinematic'
+export type TemplateId = 'bloom' | 'noir' | 'minimal' | 'velvet' | 'heritage' | 'garden' | 'cinematic' | 'cinelove'
 export type EffectType = 'none' | 'petals' | 'sakura' | 'sparkles' | 'lanterns' | 'hearts'
 export type EffectIntensity = 'light' | 'medium' | 'heavy'
 
@@ -195,6 +195,15 @@ export const THEMES: Record<TemplateId, TemplateTheme> = {
     soft: '#222222',
     isDark: true,
   },
+  cinelove: {
+    bg: '#1B1422',
+    text: '#F5E9DC',
+    accent: '#E8B4A0',
+    muted: 'rgba(245,233,220,0.6)',
+    border: 'rgba(245,233,220,0.15)',
+    soft: 'rgba(255,255,255,0.06)',
+    isDark: true,
+  },
 }
 
 // ─── Template meta ────────────────────────────────────────────
@@ -236,6 +245,12 @@ export const TEMPLATE_META: Record<TemplateId, { label: string; desc: string; pa
     label: 'Cinematic',
     desc: 'Điện ảnh, hiện đại — đen tuyền, chữ nổi bật',
     palette: ['#111111', '#F5F5F5', '#888888'],
+    // isPremium: true,
+  },
+  cinelove: {
+    label: 'Cinelove',
+    desc: 'Glass UI mobile-first — bottom sheet hộp quà, lưu bút, RSVP',
+    palette: ['#1B1422', '#E8B4A0', '#F5E9DC'],
     // isPremium: true,
   },
 }

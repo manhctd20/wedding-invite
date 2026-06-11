@@ -40,10 +40,46 @@ const TEMPLATES = [
     text: '#F0E8DC',
     img: 'https://picsum.photos/seed/velvet-preview/400/520',
   },
+  {
+    id: 'heritage',
+    label: 'Heritage',
+    tagline: 'Truyền thống & Trang trọng',
+    bg: '#FAF3E0',
+    accent: '#D4AF37',
+    text: '#4A1C1C',
+    img: 'https://picsum.photos/seed/heritage-preview/400/520',
+  },
+  {
+    id: 'garden',
+    label: 'Garden',
+    tagline: 'Tươi mát & Thiên nhiên',
+    bg: '#F7FCF5',
+    accent: '#6B8E7B',
+    text: '#1C3B2B',
+    img: 'https://picsum.photos/seed/garden-preview/400/520',
+  },
+  {
+    id: 'cinematic',
+    label: 'Cinematic',
+    tagline: 'Điện ảnh & Hiện đại',
+    bg: '#111111',
+    accent: '#D4D4D4',
+    text: '#F5F5F5',
+    img: 'https://picsum.photos/seed/cinematic-preview/400/520',
+  },
+  {
+    id: 'cinelove',
+    label: 'Cinelove',
+    tagline: 'Glass UI & Bottom sheets',
+    bg: '#1B1422',
+    accent: '#E8B4A0',
+    text: '#F5E9DC',
+    img: 'https://picsum.photos/seed/cinelove-preview/400/520',
+  },
 ]
 
 const FEATURES = [
-  { icon: '✦', title: '3 template đẹp', desc: 'Bloom, Noir, Minimal - mỗi phong cách một vẻ riêng' },
+  { icon: '✦', title: '8 template đẹp', desc: 'Bloom, Noir, Minimal, Velvet, Heritage, Garden, Cinematic, Cinelove — mỗi phong cách một vẻ riêng' },
   { icon: '✦', title: 'Chỉnh sửa trực tiếp', desc: 'Preview realtime khi bạn gõ, không cần reload' },
   { icon: '✦', title: 'Link chia sẻ', desc: 'Gửi link cho khách mời, không cần app, không cần tài khoản' },
   { icon: '✦', title: 'Upload ảnh cưới', desc: 'Thêm ảnh bìa và album ảnh vào thiệp của bạn' },
@@ -129,7 +165,7 @@ export default function LandingPage() {
           </div>
 
           <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid #E8DDD4', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: m ? 16 : 24 }}>
-            {[['3', 'Template'], ['100%', 'Miễn phí'], ['∞', 'Khách mời']].map(([num, label]) => (
+            {[['8', 'Template'], ['100%', 'Miễn phí'], ['∞', 'Khách mời']].map(([num, label]) => (
               <div key={label}>
                 <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: m ? 28 : 36, fontWeight: 300, color: '#C4A882', lineHeight: 1 }}>{num}</p>
                 <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', color: '#9C8C7C', marginTop: 4 }}>{label}</p>

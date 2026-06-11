@@ -195,7 +195,7 @@ function Particles({ type, color, count, isMobile, burst }: ParticleProps) {
         const rotDeg   = rnd(i * 7 + 9, -20, 20)
         const iter     = burst ? '1' : 'infinite'
 
-        const style: React.CSSProperties = {
+        const style: React.CSSProperties & Record<`--${string}`, string | number> = {
           position: 'fixed',
           left:    `${left}%`,
           top:     topVal,
@@ -205,11 +205,11 @@ function Particles({ type, color, count, isMobile, burst }: ParticleProps) {
           opacity,
           pointerEvents: 'none',
           zIndex: 999,
-          ['--dur' as any]:    `${dur}s`,
-          ['--delay' as any]:  burst ? `${delay}s` : `-${delay}s`,
-          ['--travel' as any]: `-${travelVh}vh`,
-          ['--rot' as any]:    `${rotDeg}deg`,
-          ['--iter' as any]:   iter,
+          '--dur':    `${dur}s`,
+          '--delay':  burst ? `${delay}s` : `-${delay}s`,
+          '--travel': `-${travelVh}vh`,
+          '--rot':    `${rotDeg}deg`,
+          '--iter':   iter,
         }
 
         const shape = (() => {

@@ -123,7 +123,7 @@ export default function DashboardPage() {
                     <span style={{ color: '#E8DDD4' }}>|</span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <span>❤️</span>
-                      <strong style={{ color: '#2C2420' }}>{(inv.content as any)?.reactionCount ?? 0}</strong>
+                      <strong style={{ color: '#2C2420' }}>{(inv as any).reactionCount ?? 0}</strong>
                     </span>
                     <span style={{ color: '#E8DDD4' }}>|</span>
                     <span>Sửa: {new Date(inv.updatedAt).toLocaleDateString('vi-VN')}</span>

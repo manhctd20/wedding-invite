@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { InvitationData } from '../types/invitation'
 import { getPublicInvitation, recordToData } from '../store/invitationApi'
-import { BloomTemplate, NoirTemplate, MinimalTemplate, VelvetTemplate, HeritageTemplate, GardenTemplate, CinematicTemplate } from '../templates'
+import { BloomTemplate, NoirTemplate, MinimalTemplate, VelvetTemplate, HeritageTemplate, GardenTemplate, CinematicTemplate, CineloveTemplate } from '../templates'
 import HeartLoader from '../components/effects/HeartLoader'
 import MusicToggle from '../components/mobile/MusicToggle'
+import MusicCard from '../components/mobile/MusicCard'
 import LiveCommentTicker from '../components/mobile/LiveCommentTicker'
 import StickyToolbar from '../components/mobile/StickyToolbar'
 import { THEMES } from '../types/invitation'
@@ -18,6 +19,7 @@ function TemplateRenderer({ data, guestName }: { data: InvitationData; guestName
     case 'heritage': return <HeritageTemplate data={data} guestName={guestName} />
     case 'garden': return <GardenTemplate data={data} guestName={guestName} />
     case 'cinematic': return <CinematicTemplate data={data} guestName={guestName} />
+    case 'cinelove': return <CineloveTemplate data={data} guestName={guestName} />
   }
 }
 
@@ -47,21 +49,30 @@ export default function InvitePage() {
   const theme = THEMES[data.template]
   const accentColor = data.accentColor || theme.accent
 
+  const isCinelove = data.template === 'cinelove'
+  // Cinelove template self-hosts gift/wish/rsvp via bottom sheets — skip the global StickyToolbar/Ticker
+  const hasStickyToolbar = !isCinelove && (data.showStickyToolbar ?? true) && !!slug
+  const hasLiveTicker = !isCinelove && (data.showLiveTicker ?? true) && !!slug
+
   return (
     <>
-      <TemplateRenderer data={data} guestName={guestName} />
+      <div style={{ paddingBottom: hasStickyToolbar ? 'calc(72px + env(safe-area-inset-bottom))' : 0 }}>
+        <TemplateRenderer data={data} guestName={guestName} />
+      </div>
 
       {data.musicUrl && (
-        <MusicToggle url={data.musicUrl} title={data.musicTitle} accentColor={accentColor} />
+        isCinelove
+          ? <MusicCard url={data.musicUrl} title={data.musicTitle} theme={theme} coverImage={data.coverImage} />
+          : <MusicToggle url={data.musicUrl} title={data.musicTitle} accentColor={accentColor} />
       )}
 
-      {(data.showLiveTicker ?? true) && slug && (
-        <LiveCommentTicker slug={slug} theme={theme} />
+      {hasLiveTicker && (
+        <LiveCommentTicker slug={slug!} theme={theme} />
       )}
 
-      {(data.showStickyToolbar ?? true) && slug && (
+      {hasStickyToolbar && (
         <StickyToolbar
-          slug={slug}
+          slug={slug!}
           initialCount={data.reactionCount ?? 0}
           allowReactions={data.allowReactions ?? true}
           theme={theme}

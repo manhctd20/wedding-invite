@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../store/auth'
 import { apiError } from '../lib/api'
 
@@ -11,8 +11,9 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Đã đăng nhập → redirect declaratively (tránh setState-in-render warning)
   if (user) {
-    navigate(user.role === 'admin' ? '/admin' : '/dashboard', { replace: true })
+    return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />
   }
 
   async function submit(e: FormEvent) {
