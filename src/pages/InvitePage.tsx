@@ -50,9 +50,8 @@ export default function InvitePage() {
   const accentColor = data.accentColor || theme.accent
 
   const isCinelove = data.template === 'cinelove'
-  // Cinelove template self-hosts gift/wish/rsvp via bottom sheets — skip the global StickyToolbar/Ticker
-  const hasStickyToolbar = !isCinelove && (data.showStickyToolbar ?? true) && !!slug
-  const hasLiveTicker = !isCinelove && (data.showLiveTicker ?? true) && !!slug
+  const hasStickyToolbar = (data.showStickyToolbar ?? true) && !!slug
+  const hasLiveTicker = (data.showLiveTicker ?? true) && !!slug
 
   return (
     <>
@@ -67,7 +66,7 @@ export default function InvitePage() {
       )}
 
       {hasLiveTicker && (
-        <LiveCommentTicker slug={slug!} theme={theme} />
+        <LiveCommentTicker slug={slug!} theme={theme} variant={isCinelove ? 'overlay' : 'side'} />
       )}
 
       {hasStickyToolbar && (

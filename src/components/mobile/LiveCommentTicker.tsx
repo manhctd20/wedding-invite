@@ -12,9 +12,10 @@ interface Entry {
 interface Props {
   slug: string
   theme: TemplateTheme
+  variant?: 'side' | 'overlay'
 }
 
-export default function LiveCommentTicker({ slug, theme }: Props) {
+export default function LiveCommentTicker({ slug, theme, variant = 'side' }: Props) {
   const isMobile = useIsMobile()
   const [entries, setEntries] = useState<Entry[]>([])
   const [paused, setPaused] = useState(false)
@@ -38,15 +39,26 @@ export default function LiveCommentTicker({ slug, theme }: Props) {
   if (!isMobile || entries.length === 0) return null
 
   const items = [...entries, ...entries]
-  const itemH = 46
+  const itemH = variant === 'overlay' ? 52 : 46
   const totalH = entries.length * itemH
 
   const visibleRows = Math.min(entries.length, 4)
   const isDark = theme.isDark
 
-  return (
-    <div
-      style={{
+  // Container position + size
+  const containerStyle: React.CSSProperties = variant === 'overlay'
+    ? {
+        position: 'fixed',
+        left: 12, right: 12,
+        bottom: 'calc(78px + env(safe-area-inset-bottom))',
+        zIndex: 998,
+        pointerEvents: 'none',
+        maskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)',
+        WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%)',
+        height: visibleRows * itemH,
+        overflow: 'hidden',
+      }
+    : {
         position: 'fixed',
         left: 12,
         bottom: 85,
@@ -57,7 +69,52 @@ export default function LiveCommentTicker({ slug, theme }: Props) {
         WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)',
         height: visibleRows * itemH,
         overflow: 'hidden',
-      }}
+      }
+
+  // Bubble style — cinelove uses dark-red translucent with white text
+  const bubbleStyle: React.CSSProperties = variant === 'overlay'
+    ? {
+        background: 'rgba(140, 30, 45, 0.55)',
+        backdropFilter: 'blur(14px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(14px) saturate(160%)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        borderRadius: 14,
+        padding: '10px 16px',
+        fontSize: 13,
+        lineHeight: 1.35,
+        color: '#FFF',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+        width: '100%',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        fontFamily: "'DM Sans', sans-serif",
+      }
+    : {
+        background: isDark ? 'rgba(30,30,30,0.85)' : 'rgba(255,255,255,0.88)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'}`,
+        borderRadius: 24,
+        padding: '8px 14px',
+        fontSize: 13,
+        lineHeight: 1.3,
+        color: isDark ? '#FFF' : '#2C2420',
+        boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(0,0,0,0.08)',
+        maxWidth: '100%',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        fontFamily: "'DM Sans', sans-serif",
+      }
+
+  const nameColor = variant === 'overlay' ? '#FFE3C9' : theme.accent
+  const dotColor  = variant === 'overlay' ? 'rgba(255,255,255,0.5)' : theme.muted
+  const msgOpacity = variant === 'overlay' ? 1 : (isDark ? 0.9 : 1)
+
+  return (
+    <div
+      style={containerStyle}
       onTouchStart={() => setPaused(true)}
       onTouchEnd={() => setPaused(false)}
     >
@@ -87,31 +144,13 @@ export default function LiveCommentTicker({ slug, theme }: Props) {
               height: itemH,
               display: 'flex',
               alignItems: 'center',
-              paddingRight: 8,
+              paddingRight: variant === 'overlay' ? 0 : 8,
             }}
           >
-            <div style={{
-              background: isDark ? 'rgba(30,30,30,0.85)' : 'rgba(255,255,255,0.88)',
-              backdropFilter: 'blur(12px)',
-              border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'}`,
-              borderRadius: 24,
-              padding: '8px 14px',
-              fontSize: 13,
-              lineHeight: 1.3,
-              color: isDark ? '#FFF' : '#2C2420',
-              boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(0,0,0,0.08)',
-              maxWidth: '100%',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              fontFamily: "'DM Sans', sans-serif",
-            }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-            >
-              <span style={{ color: theme.accent, fontWeight: 500 }}>{e.guestName}</span>
-              <span style={{ color: theme.muted }}>{' '}•{' '}</span>
-              <span style={{ opacity: isDark ? 0.9 : 1 }}>{e.message}</span>
+            <div style={bubbleStyle}>
+              <span style={{ color: nameColor, fontWeight: 600 }}>{e.guestName}:</span>
+              <span style={{ color: dotColor }}>{'  '}</span>
+              <span style={{ opacity: msgOpacity }}>{e.message}</span>
             </div>
           </div>
         ))}
